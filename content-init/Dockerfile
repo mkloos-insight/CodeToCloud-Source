@@ -2,7 +2,7 @@ FROM node:alpine AS base
 WORKDIR /usr/src/app
 ENV MONGODB_CONNECTION=mongodb://mongo:27017/contentdb
 
-FROM node:argon AS build
+FROM node:dubnium AS build
 WORKDIR /usr/src/app
 
 # Install app dependencies
