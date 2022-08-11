@@ -9,27 +9,51 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- checkout: self
+stages:
+  - stage: Build
+    jobs:
+    - job: 'BuildAndPublish'
+      displayName: 'Build And Publish'
+      steps:
+        - checkout: self
 
-- task: DockerCompose@0
-  inputs:
-    containerregistrytype: 'Container Registry'
-    dockerRegistryEndpoint: 'GitHub Container Registry'
-    dockerComposeFile: '**/docker-compose.yml'
-    additionalDockerComposeFiles: 'build.docker-compose.yml'
-    action: 'Build services'
-    additionalImageTags: '$(Build.BuildNumber)'
+        - task: DockerCompose@0
+          inputs:
+            containerregistrytype: 'Container Registry'
+            dockerRegistryEndpoint: 'GitHub Container Registry'
+            dockerComposeFile: '**/docker-compose.yml'
+            additionalDockerComposeFiles: 'build.docker-compose.yml'
+            action: 'Build services'
+            additionalImageTags: '$(Build.BuildNumber)'
 
-- checkout: self
-- task: DockerCompose@0
-  inputs:
-    containerregistrytype: 'Container Registry'
-    dockerRegistryEndpoint: 'GitHub Container Registry'
-    dockerComposeFile: '**/docker-compose.yml'
-    additionalDockerComposeFiles: 'build.docker-compose.yml'
-    action: 'Push services'
-    additionalImageTags: '$(Build.BuildNumber)'
+        - task: DockerCompose@0
+          inputs:
+            containerregistrytype: 'Container Registry'
+            dockerRegistryEndpoint: 'GitHub Container Registry'
+            dockerComposeFile: '**/docker-compose.yml'
+            additionalDockerComposeFiles: 'build.docker-compose.yml'
+            action: 'Push services'
+            additionalImageTags: '$(Build.BuildNumber)'
+
+  - stage: DeployProd
+    dependsOn: Build
+    jobs:
+    - deployment: infrastructure
+      environment: production
+      strategy:
+       runOnce:
+         deploy:
+          steps:
+            - checkout: self
+            - task: AzureCLI@2
+              inputs:
+                azureSubscription: 'Fabrikam-Azure'
+                scriptType: 'pscore'
+                scriptLocation: 'scriptPath'
+                scriptPath: './infrastructure/deploy-infrastructure.ps1'
+                arguments: 'mtk'
+              env:
+                CR_PAT: $(CR_PAT)
 
 #- script: echo Hello, world!
 #  displayName: 'Run a one-line script'
