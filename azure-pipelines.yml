@@ -1,64 +1,47 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 stages:
-  - stage: Build
+  - stage: build
     jobs:
-    - job: 'BuildAndPublish'
-      displayName: 'Build And Publish'
+    - job: 'BuildAndpublish'
+      displayName: 'Build and Publish'
       steps:
-        - checkout: self
-
-        - task: DockerCompose@0
-          inputs:
-            containerregistrytype: 'Container Registry'
-            dockerRegistryEndpoint: 'GitHub Container Registry'
-            dockerComposeFile: '**/docker-compose.yml'
-            additionalDockerComposeFiles: 'build.docker-compose.yml'
-            action: 'Build services'
-            additionalImageTags: '$(Build.BuildNumber)'
-
-        - task: DockerCompose@0
-          inputs:
-            containerregistrytype: 'Container Registry'
-            dockerRegistryEndpoint: 'GitHub Container Registry'
-            dockerComposeFile: '**/docker-compose.yml'
-            additionalDockerComposeFiles: 'build.docker-compose.yml'
-            action: 'Push services'
-            additionalImageTags: '$(Build.BuildNumber)'
-
+            - checkout: self
+            - task: DockerCompose@0
+              inputs:
+                containerregistrytype: 'Container Registry'
+                dockerRegistryEndpoint: 'GitHub Container Registry'
+                dockerComposeFile: '**/docker-compose.yml'
+                additionalDockerComposeFiles: 'build.docker-compose.yml'
+                action: 'Build services'
+                additionalImageTags: '$(Build.BuildNumber)'
+            - task: DockerCompose@0
+              inputs:
+                containerregistrytype: 'Container Registry'
+                dockerRegistryEndpoint: 'GitHub Container Registry'
+                dockerComposeFile: '**/docker-compose.yml'
+                additionalDockerComposeFiles: 'build.docker-compose.yml'
+                action: 'Push services'
+                additionalImageTags: '$(Build.BuildNumber)'
   - stage: DeployProd
-    dependsOn: Build
     jobs:
     - deployment: infrastructure
       environment: production
       strategy:
-       runOnce:
-         deploy:
-          steps:
-            - checkout: self
-            - task: AzureCLI@2
-              inputs:
-                azureSubscription: 'Fabrikam-Azure'
-                scriptType: 'pscore'
-                scriptLocation: 'scriptPath'
-                scriptPath: './infrastructure/deploy-infrastructure.ps1'
-                arguments: 'mtk'
-              env:
-                CR_PAT: $(CR_PAT)
-
-#- script: echo Hello, world!
-#  displayName: 'Run a one-line script'
-#
-#- script: |
-#    echo Add other tasks to build, test, and deploy your project.
-#    echo See https://aka.ms/yaml
-#  displayName: 'Run a multi-line script'
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self
+              - task: AzureCLI@2
+                inputs:
+                  azureSubscription: 'Fabrikam-Azure'
+                  scriptType: 'pscore'
+                  scriptLocation: 'scriptPath'
+                  scriptPath: './infrastructure/deploy-infrastructure.ps1'
+                  arguments: 'tst'
+                env:
+                  CR_PAT: $(CR_PAT)
