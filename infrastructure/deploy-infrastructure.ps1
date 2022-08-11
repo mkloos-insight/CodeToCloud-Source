@@ -1,14 +1,14 @@
 param
 (
-    [string] $studentprefix = "mtk"
+    [string] $studentprefix = "tst"
 )
 
 $resourcegroupName = "fabmedical-rg-" + $studentprefix
 $cosmosDBName = "fabmedical-cdb-" + $studentprefix
 $webappName = "fabmedical-web-" + $studentprefix
 $planName = "fabmedical-plan-" + $studentprefix
-$location1 = "centralus"
-$location2 = "eastus"
+$location1 = "westeurope"
+$location2 = "northeurope"
 $appInsights = "fabmedicalai-" + $studentsuffix
 
 #First create a group
